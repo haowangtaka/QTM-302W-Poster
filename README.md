@@ -16,7 +16,7 @@ Binder](http://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/haowangt
 
 - Hao Wang, Jafer Hasnain
 
-#### – Project Status: \[Active, On-Hold, Completed\]
+#### – Project Status: \[Active\]
 
 ## Project Intro/Objective
 
