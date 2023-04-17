@@ -53,9 +53,18 @@ programming language R.
 
 ### Project Structure
 
-*Put an ASCII tree here with your project’s directory structure. Give a
-short description of where the different components of data and analysis
-are.*
+*QTM 302W Poster.Rproj
+├── .binder
+├── analysis
+├── data
+├── renv
+├── .Rbuildignore
+├── .Rprofile
+├── .gitattributes
+├── .gitignore
+├── README.Rmd
+├── README.md
+└── renv.lock*
 
 ### Run in Your Web Browser
 
