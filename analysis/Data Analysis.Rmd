@@ -1,0 +1,361 @@
+---
+title: "Student Performance Dataset Analysis"
+author: "Jafer Hasnain, Hao Wang"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Load Library
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(FactoMineR)
+library(factoextra)
+library(class)
+library(ggpubr)
+library(ggforce)
+library(caret)
+library(dplyr)
+library(ggrepel)
+library(ggplot2)
+library(caret)
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+library(forcats)
+library(tidyr)
+library(ggpubr)
+library(corrplot)
+library(reshape2)
+```
+
+#### 1. Preprocessing the Dataset for PCA and KNN
+```{r, warning=FALSE, message=FALSE}
+df<-read.table("student-mat.csv",sep=";",header=TRUE)
+#####
+#
+# removed variables: 
+# G1, G2 (not of interest)
+# age, school (not relevant for desired analysis)
+# Mjob, Fjob (unclear mapping to a quantitative var)
+#
+#####
+df_orig <- df %>%
+  mutate(value = 1) %>% 
+  spread(reason, value, fill = 0 ) %>%
+  mutate(value = 1) %>% 
+  spread(guardian, value, fill = 0 )
+df_orig$schoolsup <- ifelse(df_orig$schoolsup == "yes", 1 ,0)
+df_orig$famsup <- ifelse(df_orig$famsup == "yes", 1 ,0)
+df_orig$paid <- ifelse(df_orig$paid == "yes", 1 ,0)
+df_orig$activities <- ifelse(df_orig$activities == "yes", 1 ,0)
+df_orig$nursery <- ifelse(df_orig$nursery == "yes", 1 ,0)
+df_orig$higher <- ifelse(df_orig$higher == "yes", 1 ,0)
+df_orig$internet <- ifelse(df_orig$internet == "yes", 1 ,0)
+df_orig$romantic <- ifelse(df_orig$romantic == "yes", 1 ,0)
+df_orig$famsize <- ifelse(df_orig$famsize == 'GT3', 1, 0)
+df_orig$sex <- ifelse(df_orig$sex == 'M', 1, 0)
+df_orig$address <- ifelse(df_orig$address == 'U', 1, 0)
+df_orig$Pstatus <- ifelse(df_orig$Pstatus == 'T', 1, 0)
+
+# seperating out G3 as our future response variable
+df_g3 <- df_orig$G3
+df_g3cat <- ifelse(df_g3 >= 12, 1, 0) # passrate = 12/20 = 60% grade
+df_oclean <- subset(df_orig, select = -c(G1, G2, G3, age, school, Mjob, Fjob))
+
+# normalize all columns
+normalise <- function(x) {
+  return ((x-min(x))/(max(x)-min(x)))
+}
+onorm <- as.data.frame(lapply(df_oclean, normalise))
+```
+
+#### 2. Principle Component Analysis
+```{r}
+##### Principle component analysis #############################################
+#
+# performed to both analyse the structure of the data, 
+# as well as possible dimensionality reduction for the upcoming k-nn
+#
+#####
+on_pca <- PCA(onorm, graph=FALSE)
+
+# Extract PCA results
+loadings <- on_pca$var$coord
+contributions <- on_pca$var$contrib
+rownames(loadings) <- rownames(on_pca$var$coord)
+
+# Calculate alpha values based on contributions
+alpha_values <- apply(contributions, 1, function(x) (x[1] + x[2]) / 100)
+
+# Create a dataframe with loadings, contributions, and alpha values
+df_loadings <- data.frame(loadings, contributions, alpha_values)
+colnames(df_loadings) <- c("PC1", "PC2", "contrib1", "contrib2", "alpha")
+
+# Create a custom PCA biplot using ggplot2 and ggrepel
+biplot <- ggplot(df_loadings, aes(x = PC1, y = PC2, label = rownames(df_loadings))) +
+  geom_segment(aes(xend = PC1, yend = PC2, alpha = alpha), x = 0, y = 0, linetype = "dashed", color = "black") +
+  geom_label_repel(aes(fill = alpha), color = "white", fontface = "bold", size = 3, box.padding = unit(0.35, "lines"), show.legend = FALSE) +
+  scale_fill_gradient2(low = "#00AFBB", mid = "#E7B800", high = "#FC4E07", midpoint = mean(alpha_values)) +
+  scale_alpha(range(alpha_values), guide = FALSE) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        plot.title = element_text(face = "bold", size = 12, hjust = 0.5),
+        axis.title.x = element_text(face = "bold", size = 12),
+        axis.title.y = element_text(face = "bold", size = 12),
+        axis.text = element_text(size = 12)) +
+  coord_fixed() +
+  labs(title = "PCA Biplot", x = "PC1", y = "PC2")
+
+# Save the plot as a high-resolution image
+ggsave("pca_biplot.png", plot = biplot, width = 8, height = 6, dpi = 300)
+biplot
+```
+
+```{r}
+## variables' coordinates in the first 5 dimensions (pairwise)
+pv12 <- fviz_pca_var(on_pca, 
+             label="none",
+             axes=c(1,2),
+             ggtheme = theme_minimal())
+pv23 <- fviz_pca_var(on_pca, 
+             label="none",
+             axes=c(2,3),
+             ggtheme = theme_minimal())
+pv34 <- fviz_pca_var(on_pca, 
+             label="none",
+             axes=c(3,4),
+             ggtheme = theme_minimal())
+pv45 <- fviz_pca_var(on_pca, 
+             label="none",
+             axes=c(4,5),
+             ggtheme = theme_minimal())
+pvarcomb <- ggarrange(pv12, pv23, pv34, pv45, nrow=2, ncol=2)
+pvarcomb
+```
+
+```{r}
+## individuals' coordinates in the first 5 dimensions (pairwise)
+#
+# observe some interesting clustering...
+#
+##
+pi12 <- fviz_pca_ind(on_pca, 
+             label="none",
+             axes=c(1,2),
+             ggtheme = theme_minimal())
+pi23 <- fviz_pca_ind(on_pca, 
+             label="none",
+             axes=c(2,3),
+             ggtheme = theme_minimal())
+pi34 <- fviz_pca_ind(on_pca, 
+             label="none",
+             axes=c(3,4),
+             ggtheme = theme_minimal())
+pi45 <- fviz_pca_ind(on_pca, 
+             label="none",
+             axes=c(4,5),
+             ggtheme = theme_minimal())
+pvarcomb <- ggarrange(pi12, pi23, pi34, pi45, nrow=2, ncol=2)
+pvarcomb
+```
+```{r}
+## view the eigenvalues
+on_eres <- get_eigenvalue(on_pca)
+head(on_eres, 10)
+```
+
+#### 3. K-nearest Neighbors
+```{r}
+##### k-nearest neighbors implementation #############################################
+#
+# TWO performed: one on the original data (29 dimensions), 
+#                and another on projection to the PCA (5 dimensions)
+# Response variable: G3 - 1 if passing (>=12) | 0 otherwise
+#
+#####
+
+##### knn w/o projection
+set.seed(139)
+
+# 75/25 training/testing set split
+trdec <- 0.75
+trind <- sample(1:nrow(onorm), nrow(onorm)*trdec, replace = FALSE)
+trpercent <- trdec * 100
+tspercent <- 100-trpercent
+
+otrain <- onorm[trind,]
+otest <- onorm[-trind,]
+otrlabels <- df_g3cat[trind]
+otslabels <- df_g3cat[-trind]
+```
+
+```{r}
+# perform the test for each choice of k in 1:size of testing set and plot
+accdf <- data.frame(matrix(nrow=length(otslabels), ncol=2))
+colnames(accdf) <- c('k', 'accuracy')
+for(i in 1:length(otslabels)) {
+  knn_wop <- knn(train=otrain, test=otest, cl=otrlabels, k=i)
+  acc_wop <- sum(knn_wop == otslabels) / length(otslabels)
+  accdf[i,1] <- i
+  accdf[i,2] <- acc_wop
+}
+
+maxacc <- max(accdf[2])
+maxindex <- which.max(as.vector(unlist(accdf[2])))
+pacc <- ggplot(data=accdf, aes(x=k, y=accuracy)) + 
+  geom_point() + 
+  theme_minimal() + 
+  labs(title=paste('Model accuracy by k, original dimensions (29), ', trpercent, '% training set', sep="")) +
+  annotate('text', x=maxindex, y=maxacc+0.01, label=paste('max:', round(maxacc, 3), 'at k =', maxindex))
+pacc
+```
+
+```{r}
+##### knn w/ projection
+opj <- get_pca_ind(on_pca)$coord #obtain projected coords
+
+# same seed and split as previous test
+set.seed(139)
+trpdec <- 0.75
+trpind <- sample(1:nrow(opj), nrow(opj)*trpdec, replace = FALSE)
+trppercent <- trpdec * 100
+tsppercent <- 100-trppercent
+
+optrain <- opj[trpind,]
+optest <- opj[-trpind,]
+otrplabels <- df_g3cat[trind]
+otsplabels <- df_g3cat[-trind]
+```
+
+```{r}
+accpdf <- data.frame(matrix(nrow = length(otslabels), ncol=2))
+colnames(accpdf) <- c('k', 'accuracy')
+for(i in 1:length(otsplabels)) {
+  knn_wop <- knn(train=optrain, test=optest, cl=otrplabels, k=i)
+  acc_wop <- sum(knn_wop == otsplabels) / length(otsplabels)
+  accpdf[i,1] <- i
+  accpdf[i,2] <- acc_wop
+}
+
+maxaccp <- max(accpdf[2])
+maxindexp <- which.max(as.vector(unlist(accpdf[2])))
+paccp <- ggplot(data=accpdf, aes(x=k, y=accuracy)) + 
+  geom_point() + 
+  theme_minimal() + 
+  labs(title=paste('Model accuracy by k, projected dimensions (5), ', trppercent, '% training set', sep="")) +
+  annotate('text', x=maxindexp, y=maxaccp+0.01, label=paste('max:', round(maxaccp, 3), 'at k =', maxindexp))
+paccp
+```
+
+#### 3. Preprocessing the Dataset for Decision Tree
+```{r}
+# Reformatting the raw data
+df_math = read.table("student-mat.csv", sep=";", header=TRUE)
+rename_other <- function(data, other_string) {
+  # Get the names of all the columns in the data frame
+  col_names <- names(data)
+  
+  # Loop through each column
+  for (col in col_names) {
+    # Check if the column contains the specified string value
+    if (other_string %in% data[[col]]) {
+      # Replace the string value with the column name + "other"
+      data[[col]][data[[col]] == other_string] <- paste0(col, "_other")
+    }
+  }
+  
+  return(data)
+}
+df_math <- rename_other(df_math, "other")
+```
+
+```{r}
+# One hot encoding for df_math
+df_math <- df_math %>% 
+          mutate(value = 1) %>% 
+          spread(school, value, fill = 0 ) %>%
+          mutate(value = 1) %>% 
+          spread(sex, value, fill = 0 ) %>%
+          mutate(value = 1) %>% 
+          spread(address, value, fill = 0 ) %>%
+          mutate(value = 1) %>% 
+          spread(famsize, value, fill = 0 ) %>%
+          mutate(value = 1) %>% 
+          spread(Pstatus, value, fill = 0 ) %>%
+          mutate(value = 1) %>% 
+          spread(Mjob, value, fill = 0 ) %>%
+          mutate(value = 1) %>% 
+          spread(Fjob, value, fill = 0 ) %>%
+          mutate(value = 1) %>% 
+          spread(reason, value, fill = 0 ) %>%
+          mutate(value = 1) %>% 
+          spread(guardian, value, fill = 0 )
+df_math$schoolsup <- ifelse(df_math$schoolsup == "yes", 1 ,0)
+df_math$famsup <- ifelse(df_math$famsup == "yes", 1 ,0)
+df_math$paid <- ifelse(df_math$paid == "yes", 1 ,0)
+df_math$activities <- ifelse(df_math$activities == "yes", 1 ,0)
+df_math$nursery <- ifelse(df_math$nursery == "yes", 1 ,0)
+df_math$higher <- ifelse(df_math$higher == "yes", 1 ,0)
+df_math$internet <- ifelse(df_math$internet == "yes", 1 ,0)
+df_math$romantic <- ifelse(df_math$romantic == "yes", 1 ,0)
+df_math$G3 <- ifelse(df_math$G3 <= 12, 0, 1)
+df_math$G3 <- as.factor(df_math$G3)
+```
+
+```{r}
+data <- subset(df_math, select = -c(G1, G2))
+```
+
+#### 4. Decision tree
+```{r}
+#Setting the seed for reproducibility
+set.seed(123)
+
+# Splitting the data into training and testing
+train_indices <- sample(1:nrow(data), 0.9 * nrow(data))  # Select 70% of data for training
+train_data <- data[train_indices, ]
+test_data <- data[-train_indices, ]
+
+```
+
+```{r}
+# Train the model
+cv_control <- trainControl(method = "cv", number = 5)
+set.seed(123)
+tree_model_cv <- train(G3~.,
+                       data = train_data,
+                       method = "rpart",
+                       trControl = cv_control)
+print(tree_model_cv$results)
+overall_accuracy <- mean(tree_model_cv$results$Accuracy)
+print(paste("Overall Accuracy:", overall_accuracy))
+```
+
+```{r}
+# Plot the decision tree
+custom_palette <- c("lightblue", "lightcoral")
+prp(tree_model_cv$finalModel, main="Decision Tree", box.palette = custom_palette, cex = 0.6)
+```
+
+```{r}
+# Calculate variable importance
+var_importance_cv <- varImp(tree_model_cv)
+
+# Extract the importance values and variable names
+importance_values <- c(80.124791, 81.779299, 93.776213, 83.915726, 100.000000, 78.616320)
+variable_names <- c("absences", "failures", "Medu", "R", "schoolsup", "Walc")
+p_n <- c(0, 0, 1, 0, 0, 0)
+
+# Create a data frame of the important variables and their importance values
+df_importance <- data.frame(variable = variable_names, importance = importance_values, impact = p_n)
+
+# Create a new factor variable based on the impact variable
+df_importance$impact_factor <- factor(df_importance$impact, levels = c(0, 1), labels = c("No", "Yes"))
+
+# Create the plot
+ggplot(df_importance, aes(x = importance, y = reorder(variable, desc(importance)), fill = impact_factor)) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("lightblue", "lightcoral")) +
+  theme_minimal() +
+  labs(x = "Importance", y = "Variables", title = "Variable Importance")
+```

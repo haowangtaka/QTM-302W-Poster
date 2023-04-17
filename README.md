@@ -1,33 +1,81 @@
+QTM 302W Poster
+================
+Hao Wang, Jafer Hasnain
+April 16th, 2023
 
-# Data Analysis Project Template
-
+<!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- badges: start -->
+
+[![Launch Rstudio
+Binder](http://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/haowangtaka/QTM-302W-Poster/main?urlpath=rstudio)
 <!-- badges: end -->
 
-This is a data analysis project template that I developed for students in my QTM/ENGRD 302W: Technical Writing for Data Science course, at Emory University, to put reproducibility concepts into practice (see Marwick et al. 2018; Moncrieff 2020).
+# Project Name
 
-The template provides you with a basic directory structure for your research project, from which you can create your own repository here on GitHub to clone to your own computer. Moreover, it contains instructions on using the package renv to manage a virtual environment with your project's package dependencies. Further, it walks through preparing your repository to work with [mybinder.org](https://mybinder.org), making use of the [holepunch package](https://karthik.github.io/holepunch/articles/getting_started.html) to generate the necessary files. You can read through this tutorial by clicking on `reproducibility.md` above.
+## Contributors
 
-## Getting Started
+- 
 
-1. Click the green "Use this template" button in the upper-right-hand corner of the screen. From there, select "Create a new repository." Give it a good descriptive name for your project.
+#### – Project Status: \[Active, On-Hold, Completed\]
 
-2. Clone your new repository to your computer that has R and Studio installed. You can do this in a number of ways: 
-  - Using the [command line](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) 
-  - From within RStudio, by selecting the "Version Control" option when Creating a New Project, and then "Clone a project from a Git repository" 
-  - Using [GitHub Desktop](https://desktop.github.com). After installing, you can click the "Code" button on your repository page and open it in GitHub Desktop from there. Otherwise, you can follow the [instructions here](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/adding-and-cloning-repositories/cloning-and-forking-repositories-from-github-desktop). 
-  
-3. Rename the `.Rproj` file for your purposes and open it in RStudio.
+## Project Intro/Objective
 
-4. In the Files pane, open `reproducibility.Rmd` and follow along inside the document.
+The purpose of this project is Cracking the Code of Student Success
+using Student Performance Dataset\*
 
-5. After you do, delete or move `reproducibility.Rmd`, `reproducibility.md`, and the directory `inst` before committing and pushing your local repo back to GitHub.
-  
+### Methods Used
 
-## Works Cited
+- Correlation, Principal Component Analysis, K-nearest Neighbor,
+  Decision Tree
 
-Marwick, B., Boettiger, C., L. Mullen, L. (2018), “Packaging Data Analytical Work Reproducibly Using R (and Friends).” The American Statistician 72 (1): 80–88. https://doi.org/10.1080/00031305.2017.1375986.
+### Platforms and Languages
 
-Moncrieff, G. (2020), "Reproducible R part 1." https://rstudio-pubs-static.s3.amazonaws.com/599947_7c545f28e24e4d21ab5dcbbb59210c63.html.
+- R
 
-Ram, K. (2023), holepunch: Make your R project Binder ready. R package version 0.1.29.9000. https://github.com/karthik/holepunch/
+## Project Description
+
+*In Portugal, where high student failure and dropout rates persist, it
+is crucial to pinpoint the key factors affecting academic success to
+improve education quality. Our study examines the “Student Performance”
+dataset, containing student demographics, study habits, performance in
+math and Portuguese language courses, and other attributes related to
+their academic performance, aiming to highlight the essential elements
+impacting achievement. We use various data analysis techniques to help
+reveal the complex relationships between variables influencing
+educational outcomes, allowing for a better understanding of factors
+promoting academic success and enabling targeted interventions to
+enhance education in Portugal. *
+
+## How to Use This Repository
+
+This research compendium has been developed using the statistical
+programming language R.
+
+### Project Structure
+
+*Put an ASCII tree here with your project’s directory structure. Give a
+short description of where the different components of data and analysis
+are.*
+
+### Run in Your Web Browser
+
+You can click the “binder” badge above to open this repository using
+RStudio in your browser. Then, please open…
+
+### Download and Run Locally
+
+To work with the repository on your local computer, you will need the [R
+software](https://cloud.r-project.org/) and RStudio
+Desktop\](<https://rstudio.com/products/rstudio/download/>).
+
+You can download this repository as a zip from from this URL:
+[main.zip](/archive/main.zip). After unzipping, please run
+`renv::hydrate()` in the console to install the necessary packages.
+
+### Featured Notebooks/Analysis/Deliverables or Demo
+
+### How to cite
+
+Please cite this project as:
+
+### Licenses

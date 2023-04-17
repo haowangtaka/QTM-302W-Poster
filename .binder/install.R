@@ -1,0 +1,23 @@
+install.packages(
+ c( 
+  "caret",
+  "class",
+  "corrplot",
+  "dplyr",
+  "factoextra",
+  "FactoMineR",
+  "forcats",
+  "ggforce",
+  "ggplot2",
+  "ggpubr",
+  "ggrepel",
+  "knitr",
+  "randomForest",
+  "renv",
+  "reshape2",
+  "rmarkdown",
+  "rpart",
+  "rpart.plot",
+  "tidyr",
+  "tidyverse")
+)
