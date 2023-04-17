@@ -81,6 +81,6 @@ You can download this repository as a zip from from this URL:
 
 ### How to cite
 
-Please cite this project as: Hao, Jafer QTM-302W-Poster. GitHub, 2023, https://github.com/johndoe/QTM-302W-Poster (accessed April 16, 2023).
+Please cite this project as: Hao, Jafer QTM-302W-Poster. GitHub, 2023, https://github.com/haowangtaka/QTM-302W-Poster.git (accessed April 16, 2023).
 
 ### Licenses
