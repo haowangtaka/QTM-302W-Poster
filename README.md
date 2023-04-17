@@ -53,18 +53,14 @@ programming language R.
 
 ### Project Structure
 
-*QTM 302W Poster.Rproj
-├── .binder
-├── analysis
-├── data
-├── renv
-├── .Rbuildignore
-├── .Rprofile
-├── .gitattributes
-├── .gitignore
-├── README.Rmd
-├── README.md
-└── renv.lock*
+
+- `.binder`: Contains the configuration files required to run the project on Binder.
+- `analysis`: Contains the R scripts or notebooks for data analysis and modeling.
+- `data`: Contains the data files used for analysis, such as CSVs or text files.
+- `renv`: Contains the R environment setup using the `renv` package.
+- `.Rbuildignore`, `.Rprofile`, `.gitattributes`, `.gitignore`: Configuration files for building, profiling, and version controlling the R project.
+- `README.Rmd`, `README.md`: README files for the project, one in R markdown format and another in markdown format.
+- `renv.lock`: Contains the precise dependencies of the R packages used in the project, managed by `renv`.
 
 ### Run in Your Web Browser
 
