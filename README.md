@@ -14,7 +14,7 @@ Binder](http://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/haowangt
 
 ## Contributors
 
-- 
+- Hao Wang, Jafer Hasnain
 
 #### – Project Status: \[Active, On-Hold, Completed\]
 
